@@ -46,7 +46,10 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.updateButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendChat();
+                ChatRoom chatRoom = new ChatRoom();
+                chatRoom.setId(Long.toString(System.currentTimeMillis()/1000l));
+                chatRoom.setTitle(inputEditText.getText().toString());
+                saveChatRoom(chatRoom);
             }
         });
 
@@ -62,14 +65,7 @@ public class MainActivity extends AppCompatActivity {
         return (int) (Math.random() * 10000);
     }
 
-    private void sendChat() {
-
-
-
-        ChatRoom chatRoom = new ChatRoom();
-
-        chatRoom.setId(inputEditText.getText().toString());
-        chatRoom.setTitle("My First Room");
+    private void saveChatRoom(ChatRoom chatRoom){
 
         List<Chat> chatList = new ArrayList<>(15);
 
@@ -96,12 +92,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 ChatRoom chatRoom = dataSnapshot.getValue(ChatRoom.class);
-                Log.d(TAG, "Chat message Added. Text = "+chatRoom.getId());
+                Log.d(TAG, "Chat message Added. Text = " + chatRoom.getId());
+                updateTextView(chatRoom.getTitle() + " " + chatRoom.getId());
+
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                Log.d(TAG, "onChildChanged "+s);
+                Log.d(TAG, "onChildChanged " + s);
             }
 
             @Override
@@ -120,42 +118,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        rootRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                /*// Clear the chat arraylist
-                chatList.clear();
-
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    Chat chat = child.getValue(Chat.class);
-                    chatList.add(chat);
-                }
-
-                updateTextList();*/
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
-
     }
 
-    private void updateTextList() {
-        StringBuilder stringBuilder = new StringBuilder();
-        for(Chat mChat : chatList){
-            stringBuilder.append("User: ");
-            stringBuilder.append(mChat.getUserId());
-
-            stringBuilder.append(" : ");
-            stringBuilder.append(mChat.getText());
-
-            stringBuilder.append("\n");
-        }
-        debugTextView.setText(stringBuilder.toString());
+    private void updateTextView(String newText) {
+        debugTextView.setText(debugTextView.getText().toString()+"\n"+newText);
     }
 
 }
