@@ -2,6 +2,8 @@ package com.sdr.firebasetest;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -12,6 +14,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.sdr.firebasetest.adapters.MainViewAdapter;
 import com.sdr.firebasetest.models.Chat;
 import com.sdr.firebasetest.models.ChatRoom;
 import com.sdr.firebasetest.models.User;
@@ -25,23 +28,22 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
 
     private EditText inputEditText;
-    private TextView debugTextView;
+    private RecyclerView recyclerView;
+    private MainViewAdapter mainViewAdapter = new MainViewAdapter();
 
     private Firebase rootRef = new Firebase(BASE_DB_URL);
 
     private List<Chat> chatList = new ArrayList<>();
-    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        user = new User();
-        user.setId(generateUserId());
-
         inputEditText = (EditText)findViewById(R.id.inputEditText);
-        debugTextView = (TextView) findViewById(R.id.textView);
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(mainViewAdapter);
 
         findViewById(R.id.updateButton).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,15 +57,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        getSupportActionBar().setTitle("User : "+user.getId());
+        getSupportActionBar().setTitle("User : "+App.user.getId());
 
 
         connectToFireBase();
     }
 
-    private int generateUserId() {
-        return (int) (Math.random() * 10000);
-    }
 
     private void saveChatRoom(ChatRoom chatRoom){
 
@@ -72,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0 ; i < 15 ; i++){
             Chat chat = new Chat();
             chat.setTimeStamp(i);
-            chat.setUserId(user.getId());
+            chat.setUserId(App.user.getId());
             chat.setText("Chat #" + i);
             chatList.add(chat);
         }
@@ -93,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 ChatRoom chatRoom = dataSnapshot.getValue(ChatRoom.class);
                 Log.d(TAG, "Chat message Added. Text = " + chatRoom.getId());
-                updateTextView(chatRoom.getTitle() + " " + chatRoom.getId());
+                updateAdapter(chatRoom);
 
             }
 
@@ -120,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void updateTextView(String newText) {
-        debugTextView.setText(debugTextView.getText().toString()+"\n"+newText);
+    private void updateAdapter(ChatRoom chatRoom) {
+        mainViewAdapter.addChatRoom(chatRoom);
     }
 
 }
